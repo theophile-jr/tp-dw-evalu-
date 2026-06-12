@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POI and Vélo'v map (deck.gl bonus)</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    #bar { padding: 8px; }
+    #map { height: 92vh; }
+  </style>
+</head>
+<body>
+  <div id="bar">
+    <b>Bonus map (MapLibre + deck.gl)</b>
+    <label>POI Type: <select id="typeSelect"><option value="ALL">ALL</option></select></label>
+    <label><input type="checkbox" id="stationsCheckbox" checked> Show Vélo'v stations</label>
+    <a href="../map.html">Leaflet version</a>
+    <a href="../index.html">Back to search</a>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/deck.gl@9.0.36/dist.min.js"></script>
+  <script>
+    const typeColors = {
+      "ACTIVITE": [228, 26, 28], "COMMERCE_ET_SERVICE": [255, 127, 0], "DEGUSTATION": [77, 175, 74],
+      "EQUIPEMENT": [152, 78, 163], "FETE_ET_MANIFESTATION": [247, 129, 191], "HEBERGEMENT_COLLECTIF": [166, 86, 40],
+      "HEBERGEMENT_LOCATIF": [255, 217, 47], "HOTELLERIE": [102, 102, 102], "HOTELLERIE_PLEIN_AIR": [102, 194, 165],
+      "PATRIMOINE_CULTUREL": [230, 171, 2], "RESTAURATION": [177, 0, 38]
+    };
+    const stationColor = [0, 80, 208, 150];
+
+    const typeSelect = document.getElementById("typeSelect");
+    const stationsCheckbox = document.getElementById("stationsCheckbox");
+    let pois = [], stations = [];
+
+    const map = new maplibregl.Map({
+      container: "map",
+      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      center: [4.84, 45.76],
+      zoom: 12,
+      pitch: 50
+    });
+
+    const overlay = new deck.MapboxOverlay({
+      getTooltip: ({ object }) => object && (object.type
+        ? `${object.name}\n${object.type}`
+        : `${object.name}\n${object.commune || ""} - ${object.stands} stands`)
+    });
+    map.addControl(overlay);
+
+    function render() {
+      const type = typeSelect.value;
+      overlay.setProps({
+        layers: [
+          new deck.ColumnLayer({
+            id: "stations",
+            data: stationsCheckbox.checked ? stations : [],
+            getPosition: d => d.coordinates,
+            radius: 25,
+            getElevation: d => d.stands * 8,
+            getFillColor: stationColor,
+            pickable: true
+          }),
+          new deck.ColumnLayer({
+            id: "pois",
+            data: type === "ALL" ? pois : pois.filter(p => p.type === type),
+            getPosition: d => d.coordinates,
+            radius: 12,
+            getElevation: 40,
+            getFillColor: d => typeColors[d.type] || [0, 0, 0],
+            pickable: true
+          })
+        ]
+      });
+    }
+
+    async function init() {
+      const response = await fetch("/mapdata");
+      const data = await response.json();
+      pois = data.pois;
+      stations = data.stations;
+      for (const type of [...new Set(pois.map(p => p.type))].sort()) {
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
+        typeSelect.appendChild(option);
+      }
+      render();
+    }
+
+    typeSelect.addEventListener("change", render);
+    stationsCheckbox.addEventListener("change", render);
+    init();
+  </script>
+</body>
+</html>
