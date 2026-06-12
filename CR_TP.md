@@ -2,7 +2,7 @@
 
 **Students:** Samuel Picquart (20250937), Théophile Jérôme-Rocher (20250936)
 
-**Database:** `20263IFMongoLab` — collections: `touristPOI_c` (raw import, 1 document), `touristPOI` (1786 POIs, after 1.1), `velov2026` (451 stations).
+**Database:** `20263IFMongoLab`
 
 ---
 
@@ -239,8 +239,8 @@ This time the `$lookup` uses the simple `localField`/`foreignField` form on the 
 
 ```bash
 cd webApp
-npm install          # installs express and mongodb
-node server.js       # starts the server on http://localhost:3000
+npm install
+node server.js
 ```
 
 The MongoDB server must be running on `mongodb://localhost:27017` with the `20263IFMongoLab` database containing the `touristPOI` and `velov2026` collections (the server creates the required 2dsphere index on `touristPOI.geometry` at startup).
@@ -283,3 +283,5 @@ An `<input type="range" min="0" max="1000" value="500">` is added next to the dr
 - a legend on the map gives the color of each type, a dropdown filters the POIs by type (or ALL) and a checkbox toggles the station layer.
 
 The visualization immediately shows that POIs are massively concentrated on the Presqu'île and the Vieux Lyon while the biggest velov stations are around Part-Dieu and the campuses, confirming the result of query 2.3.
+
+Bonus: `public/bonus/index.html` is the same map as our bonus for the previous TP (maplibre + deck gl), reachable at http://localhost:3000/bonus/.
