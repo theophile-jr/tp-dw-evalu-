@@ -278,8 +278,8 @@ An `<input type="range" min="0" max="1000" value="500">` is added next to the dr
 
 - a route `GET /mapdata` returns the coordinates, name, type and themes of the 1786 POIs and the coordinates, name, commune and capacity (`bike_stands`) of the 451 stations;
 - the map uses Leaflet with OpenStreetMap tiles, centered on Lyon;
-- each POI is a small circle colored by its type (legend = color per type, e.g. yellow for PATRIMOINE_CULTUREL, blue for COMMERCE_ET_SERVICE); a popup shows its name, type and themes;
+- each POI is a small circle with one color per type (blue is reserved for the stations); a popup shows its name, type and themes;
 - each velov station is a blue circle whose **radius is proportional to its capacity** (`bike_stands`), with a popup (name, commune, number of stands);
-- a dropdown filters the POIs by type (or ALL) and a checkbox toggles the station layer.
+- a legend on the map gives the color of each type, a dropdown filters the POIs by type (or ALL) and a checkbox toggles the station layer.
 
 The visualization immediately shows that POIs are massively concentrated on the Presqu'île and the Vieux Lyon while the biggest velov stations are around Part-Dieu and the campuses, confirming the result of query 2.3.

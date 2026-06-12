@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     #map { height: 85vh; }
+    .legend { background: white; padding: 8px 12px; border: 1px solid #999; line-height: 1.5; }
+    .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; }
   </style>
 </head>
 <body>
@@ -21,11 +23,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const typeColors = {
-      "ACTIVITE": "#e41a1c", "COMMERCE_ET_SERVICE": "#377eb8", "DEGUSTATION": "#4daf4a",
-      "EQUIPEMENT": "#984ea3", "FETE_ET_MANIFESTATION": "#ff7f00", "HEBERGEMENT_COLLECTIF": "#a65628",
-      "HEBERGEMENT_LOCATIF": "#f781bf", "HOTELLERIE": "#999999", "HOTELLERIE_PLEIN_AIR": "#66c2a5",
-      "PATRIMOINE_CULTUREL": "#ffd92f", "RESTAURATION": "#8da0cb"
+      "ACTIVITE": "#e41a1c", "COMMERCE_ET_SERVICE": "#ff7f00", "DEGUSTATION": "#4daf4a",
+      "EQUIPEMENT": "#984ea3", "FETE_ET_MANIFESTATION": "#f781bf", "HEBERGEMENT_COLLECTIF": "#a65628",
+      "HEBERGEMENT_LOCATIF": "#ffd92f", "HOTELLERIE": "#666666", "HOTELLERIE_PLEIN_AIR": "#66c2a5",
+      "PATRIMOINE_CULTUREL": "#e6ab02", "RESTAURATION": "#b10026"
     };
+    const stationColor = "#0050d0";
 
     const map = L.map("map").setView([45.76, 4.84], 13);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -66,10 +69,23 @@
 
       for (const station of data.stations) {
         L.circle([station.coordinates[1], station.coordinates[0]], {
-          radius: 4 + station.stands, color: "#0066cc", fillOpacity: 0.4, weight: 1
+          radius: 4 + station.stands, color: stationColor, fillColor: stationColor,
+          fillOpacity: 0.5, weight: 2
         }).bindPopup(`<b>${station.name}</b><br>${station.commune}<br>${station.stands} stands`)
           .addTo(stationLayer);
       }
+
+      const legend = L.control({ position: "bottomleft" });
+      legend.onAdd = () => {
+        const div = L.DomUtil.create("div", "legend");
+        let html = `<i style="background:${stationColor}"></i>Vélo'v station<br>`;
+        for (const type of types) {
+          html += `<i style="background:${typeColors[type]}"></i>${type}<br>`;
+        }
+        div.innerHTML = html;
+        return div;
+      };
+      legend.addTo(map);
 
       drawPois();
     }
