@@ -1,4 +1,4 @@
-# CR TP — Data for the Web (3IFA Graded Lab)
+# CR TP - Data for the Web (3IFA Graded Lab)
 
 **Students:** Samuel Picquart (20250937), Théophile Jérôme-Rocher (20250936)
 
@@ -6,7 +6,7 @@
 
 ---
 
-## Part 1 — MongoDB queries
+## Part 1 - MongoDB queries
 
 ### 1.1 Simplify the `touristPOI_c` collection, getting the documents from inside the "features" array to the root of a new collection called `touristPOI`. Provide the MongoDB query and explain your approach.
 
@@ -24,15 +24,15 @@ db.touristPOI_c.aggregate([
 
 `touristPOI_c` contains a single document (a GeoJSON FeatureCollection) whose `features` array holds the 1786 POIs. The pipeline:
 
-1. `$unwind: "$features"` — produces one document per element of the `features` array;
-2. `$replaceRoot: { newRoot: "$features" }` — promotes the content of the `features` field to the root, so each POI becomes a standalone document with its own `type`, `geometry` and `properties` fields;
-3. `$out: "touristPOI"` — writes the result to a new collection named `touristPOI`.
+1. `$unwind: "$features"`: one document per element of the `features` array;
+2. `$replaceRoot: { newRoot: "$features" }`: puts the content of `features` at the root, each POI becomes its own document;
+3. `$out: "touristPOI"`: writes the result in a new collection `touristPOI`.
 
-Verification: `db.touristPOI.countDocuments()` returns **1786**, the size of the original `features` array.
+Verification: `db.touristPOI.countDocuments()` returns 1786, the size of the original `features` array.
 
 ### 1.2 Provide a mongodb query that retrieves the unique types (distinct types) of points of interest in the `touristPOI` collection. Provide the results as well.
 
-The type of a POI is stored in `properties.type`; `distinct` returns each value once.
+The type of a POI is stored in `properties.type`. `distinct` returns each value once.
 
 **Query:**
 
@@ -52,7 +52,7 @@ db.touristPOI.distinct("properties.type")
 
 **Approach:**
 
-`properties.theme` is an **array** (a POI can have several themes), so we first `$unwind` it to get one document per (POI, theme) pair. We then `$group` by the type and accumulate themes with `$addToSet`, which keeps each theme only once per type (distinct). A `$project` adds `nbThemes` (`$size` of the set) and we `$sort` on it descending.
+`properties.theme` is an array (a POI can have several themes). We `$unwind` it to get one document per theme. Then we `$group` by type and collect the themes with `$addToSet` to keep them distinct. Finally a `$project` adds `nbThemes` with `$size` and we `$sort` on it in descending order.
 
 **Query:**
 
@@ -87,15 +87,15 @@ db.touristPOI.aggregate([
   nbThemes: 2 }
 ```
 
-## Part 2 — Provide at least 3 MongoDB queries that combine the `touristPOI` collection with the velov_geo collection using the `$lookup` operator
+## Part 2 - Provide at least 3 MongoDB queries that combine the `touristPOI` collection with the velov_geo collection using the `$lookup` operator
 
-Note: the statement mentions `velov_geo`; our velov collection in `20263IFMongoLab` is named `velov2026` (as required in the setup instructions), so the queries below use `velov2026`.
+Note: the statement mentions `velov_geo` but our velov collection is named `velov2026` (as asked in the setup instructions), so the queries below use `velov2026`.
 
 ### 2.1 First query that involves address comparison (properties.address, properties.nom, … check the fields)
 
 **Method:**
 
-After exploring the fields, the comparable address fields are `properties.address` of a velov station (a street, e.g. `"Place de la Paix"`) and `properties.address.streetAddress` of a POI. We join the two collections with a `$lookup` using a pipeline: the station street is passed as a variable (`let`) and compared case-insensitively (`$toLower` on both sides) inside a `$match` with `$expr`. Documents with a missing/empty address are excluded on both sides (otherwise empty matches empty). We keep only stations with at least one POI at the same address.
+After exploring the fields, the comparable ones are `properties.address` of a station and `properties.address.streetAddress` of a POI. The `$lookup` passes the station address as a variable and compares it to the POI street, with `$toLower` on both sides to ignore the case. We exclude empty addresses on both sides, otherwise empty matches empty. We keep only stations with at least one matching POI.
 
 **Query:**
 
@@ -134,7 +134,7 @@ db.velov2026.aggregate([
 
 **Explanation:**
 
-Only 5 stations share exactly a street string with a POI: the two datasets format addresses differently (POIs usually have a street number, e.g. `"14 place Jules Ferry"`, while stations often have only the street name), so an exact textual join only matches when both sides store the bare street name. This shows the limit of address-based joins and motivates the geographic join of 2.2.
+Only 5 stations match. The two datasets format addresses differently: POI addresses usually contain a street number, station addresses often just the street name, so the exact comparison rarely succeeds. The geographic join of 2.2 works much better.
 
 ### 2.2 Second query that implies geographic coordinate comparison. Use geographic operators. Create indexes if necessary.
 
@@ -147,7 +147,7 @@ db.touristPOI.createIndex({ geometry: "2dsphere" })
 db.velov2026.createIndex({ geometry: "2dsphere" })
 ```
 
-For each velov station, the `$lookup` pipeline runs a `$geoNear` on `touristPOI` centered on the station point (passed via `let`), limited to 250 m (`maxDistance`, spherical distance in meters) and filtered to heritage POIs (`query` option). We keep only stations with at least one result.
+For each station, the `$lookup` pipeline runs a `$geoNear` on `touristPOI` centered on the station point (passed with `let`). `maxDistance: 250` limits to 250 m and the `query` option filters on the heritage type. We keep stations with at least one result.
 
 **Query:**
 
@@ -187,13 +187,13 @@ db.velov2026.aggregate([
 
 **Explanation:**
 
-The query answers "which cultural heritage sites can I visit within 250 m of each velov station?". `$geoNear` computes real spherical distances in meters and sorts POIs from nearest to farthest; the `distance` field makes the result directly readable. This geographic join is much more robust than the textual one of 2.1.
+For each station we get the PATRIMOINE_CULTUREL POIs within 250 m. `$geoNear` computes the distance in meters and sorts the POIs from nearest to farthest. Much more reliable than the address comparison of 2.1.
 
 ### 2.3 For the additional query use your imagination
 
 **Idea:**
 
-Measure the "tourist pressure" on the velov network per commune: both collections carry an INSEE code (`properties.code_insee` for stations, `properties.insee` for POIs, both strings), which gives a clean equality join. We group stations by commune, `$lookup` the POIs of the same INSEE code, and compute the number of POIs per station.
+Compare the velov network with the number of tourist POIs per commune. Both collections have an INSEE code (`properties.code_insee` for stations, `properties.insee` for POIs) so we can join on it. We group the stations by commune, `$lookup` the POIs with the same INSEE code and compute the number of POIs per station.
 
 **Query:**
 
@@ -221,19 +221,19 @@ db.velov2026.aggregate([
 
 **Explanation:**
 
-This time the `$lookup` uses the simple `localField`/`foreignField` form on the INSEE codes, after a `$group` on the velov side. The result shows that the touristic center (Presqu'île, Vieux Lyon, Croix-Rousse: arrondissements 2, 5, 1) concentrates 6 to 7.5 POIs per station, whereas Part-Dieu (3e) has the densest velov network (61 stations, 1462 stands) but far fewer tourist POIs per station: the network is sized for commuters there, not for tourism.
+Here the `$lookup` uses the simple `localField`/`foreignField` form, after a `$group` on the velov side. The touristic center (arrondissements 2, 5 and 1) has 6 to 7.5 POIs per station. The 3e has the most stations (61) but only 2 POIs per station, its network serves the Part-Dieu offices more than tourism.
 
-## Part 3 — Web application (NodeJS + Express + MongoDB)
+## Part 3 - Web application
 
-**Libraries used:** `express` (web framework), `mongodb` (official NodeJS driver). On the client side, `Leaflet` (loaded from CDN, only for question 3.4).
+**Libraries used:** `express` (web framework), `mongodb` (official NodeJS driver). Client side, `Leaflet` (from CDN, for question 3.4).
 
 **Files created (in `webApp/`):**
 
-- `package.json` — project manifest and dependencies
-- `server.js` — Express server and routes
-- `data.js` — MongoDB connection and data-access functions
-- `public/index.html` — search page (questions 3.1, 3.2, 3.3)
-- `public/map.html` — map visualization (question 3.4)
+- `package.json`: project manifest and dependencies
+- `server.js`: Express server and routes
+- `data.js`: MongoDB connection and data access functions
+- `public/index.html`: search page (questions 3.1, 3.2, 3.3)
+- `public/map.html`: map visualization (question 3.4)
 
 **Setup guide:**
 
@@ -247,41 +247,41 @@ The MongoDB server must be running on `mongodb://localhost:27017` with the `2026
 
 ### 3.1 Create a web application using NodeJS and Express that connects to MongoDB and retrieves the unique communes of velov stations and integrates them in a dropdown list on an html page.
 
-- `data.js` opens one shared connection to `mongodb://localhost:27017` / `20263IFMongoLab` and exposes `getCommunes()`, which runs `db.velov2026.distinct("properties.commune")` (sorted alphabetically).
+- `data.js` opens one shared connection to `mongodb://localhost:27017` / `20263IFMongoLab` and exposes `getCommunes()`, which runs `db.velov2026.distinct("properties.commune")` and sorts the result.
 - `server.js` serves the static `public/` directory and exposes the route `GET /communes` returning the communes as JSON.
-- In `index.html`, at page load, `fetch("/communes")` fills the `<select id="communeSelect">` with one `<option>` per commune (35 communes).
+- At page load, `index.html` fetches `/communes` and fills the `<select>` with one `<option>` per commune (35 communes).
 
 ### 3.2 Modify the application so that the web page contains two drop down lists initialized with the unique communes and unique POI types and contains a search button that calls a NodeJS/Expess route that takes as parameters the commune of velov stations, the type of a POI and returns the velov station names and address of the given commune and the POI-s with the given type within a range of 500m from each velov station. Return only velov stations with at least one corresponding POI. You shall render in a table the names and addresses of velov_stations, and the corresponding POI names and themes. The table contains one raw per velov station and an embedded table for the corresponding POI-s in a cell. Divide the problem in substeps and create the solution step by step.
 
 **Substeps:**
 
-1. **Second dropdown** — same mechanism as 3.1: route `GET /poitypes` running `db.touristPOI.distinct("properties.type")`, filling `<select id="typeSelect">` (11 types).
-2. **Geospatial index** — `$geoNear` needs a `2dsphere` index on `touristPOI.geometry`; it is created at startup in `connect()`.
-3. **Search route** — `GET /search?commune=...&type=...&range=...` (route of `server.js`, validates the parameters then calls `searchStations()` in `data.js`). The aggregation on `velov2026`:
+1. Second dropdown: same mechanism as 3.1, a route `GET /poitypes` runs `db.touristPOI.distinct("properties.type")` and fills the second `<select>` (11 types).
+2. Geospatial index: `$geoNear` needs a `2dsphere` index on `touristPOI.geometry`, it is created at startup in `connect()`.
+3. Search route `GET /search?commune=...&type=...&range=...`: it checks the parameters then calls `searchStations()` in `data.js`. The aggregation on `velov2026`:
    - `$match` on `properties.commune` to keep the stations of the selected commune;
-   - `$lookup` to `touristPOI` with a pipeline starting with `$geoNear` centered on the station point (`let`/`$$stationPoint`), `maxDistance` = range in meters, `spherical: true`, and the POI type filter passed in the `query` option (it uses the index);
-   - `$match: { "nearbyPOI.0": { $exists: true } }` to keep only stations with at least one corresponding POI;
+   - `$lookup` to `touristPOI` with a pipeline starting with `$geoNear` centered on the station point, `maxDistance` = range in meters, and the POI type filter in the `query` option;
+   - `$match` to keep only stations with at least one POI found;
    - `$project` of the station name, address and the `nearbyPOI` array (POI name + themes).
-4. **Rendering** — on click on the Search button, the page fetches `/search` and builds the result table in JavaScript: one row per station with columns Station Name / Station Address / Nearby POIs; the last cell contains an embedded `<table>` with one row per POI (POI Name, Theme — the themes array joined with commas). If no station matches, a message is displayed.
+4. Rendering: the Search button fetches `/search` and builds the table in JavaScript. One row per station (name, address) and an embedded table with the POIs (name, themes joined with commas) in the last cell. If nothing matches we display a message.
 
-For this question the range parameter was the constant 500; it became the slider value in 3.3.
+For 3.2 the range was the constant 500, it becomes the slider value in 3.3.
 
 ### 3.3 Modify the application : add a slider next to the dropdown lists in the html page with values from 0 to 1000 to select the distance range in meters from the velov stations and modify the route and html page to take this distance range in account when searching the nearbyPOI-s, instead of a constant 500m.
 
-An `<input type="range" min="0" max="1000" value="500">` is added next to the dropdowns, with a `<span>` updated on the `input` event to display the current value (e.g. "242 m"). On search, the slider value is sent as the `range` parameter of `/search`, and the route passes it (parsed with `parseInt`) as the `maxDistance` of the `$geoNear`. Nothing else changes: the same route serves 3.2 (range=500) and 3.3.
+An `<input type="range" min="0" max="1000" value="500">` is added next to the dropdowns. A `<span>` updated on the `input` event shows the current value in meters. The slider value is sent as the `range` parameter of `/search` and used as the `maxDistance` of the `$geoNear`. The same route serves 3.2 and 3.3.
 
 ### 3.4 Propose an interesting visualization of the POI dataset eventually combined with the velov stations. Explain your idea and provide the description of your solution.
 
-**Idea:** an interactive map of Lyon showing the spatial distribution of the tourist POIs by type, overlaid with the velov network, to see at a glance whether the bike-sharing coverage matches the touristic areas (the question behind query 2.3).
+**Idea:** an interactive map of Lyon showing the tourist POIs by type together with the velov network, to see if the bike-sharing coverage matches the touristic areas.
 
 **Solution (implemented in `public/map.html`):**
 
-- a route `GET /mapdata` returns the coordinates, name, type and themes of the 1786 POIs and the coordinates, name, commune and capacity (`bike_stands`) of the 451 stations;
+- a route `GET /mapdata` returns the coordinates, name, type and themes of the 1786 POIs, and the coordinates, name, commune and capacity of the 451 stations;
 - the map uses Leaflet with OpenStreetMap tiles, centered on Lyon;
-- each POI is a small circle with one color per type (blue is reserved for the stations); a popup shows its name, type and themes;
-- each velov station is a blue circle whose **radius is proportional to its capacity** (`bike_stands`), with a popup (name, commune, number of stands);
-- a legend on the map gives the color of each type, a dropdown filters the POIs by type (or ALL) and a checkbox toggles the station layer.
+- each POI is a small circle with one color per type (blue is kept for the stations), a popup shows its name, type and themes;
+- each station is a blue circle whose radius depends on its capacity (`bike_stands`), with a popup (name, commune, stands);
+- a legend gives the color of each type, a dropdown filters the POIs by type and a checkbox shows/hides the stations.
 
-The visualization immediately shows that POIs are massively concentrated on the Presqu'île and the Vieux Lyon while the biggest velov stations are around Part-Dieu and the campuses, confirming the result of query 2.3.
+The map shows that the POIs are concentrated on the Presqu'île and the Vieux Lyon while the biggest stations are around Part-Dieu and the campuses, which matches the result of query 2.3.
 
-Bonus: `public/bonus/index.html` is the same map as our bonus for the previous TP (maplibre + deck gl), reachable at http://localhost:3000/bonus/.
+Bonus: `public/bonus/index.html` is the same 3d map as our bonus for the previous TP (maplibre + deck gl), we used it to quickly make this bonus, reachable at http://localhost:3000/bonus/.
