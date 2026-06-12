@@ -1,0 +1,63 @@
+- generic [active] [ref=e1]:
+  - heading "Lyon Vélo'v and Tourist POI Explorer" [level=1] [ref=e2]
+  - paragraph [ref=e3]:
+    - generic [ref=e4]:
+      - text: "Commune:"
+      - combobox "Commune:" [ref=e5]:
+        - option "Albigny-sur-Saône" [selected]
+        - option "Bron"
+        - option "Caluire-et-Cuire"
+        - option "Champagne-au-Mont-d'Or"
+        - option "Chassieu"
+        - option "Collonges-au-Mont-d'Or"
+        - option "Couzon-au-Mont-d'Or"
+        - option "Décines-Charpieu"
+        - option "Fontaines-sur-Saône"
+        - option "La Mulatière"
+        - option "Lyon 1er Arrondissement"
+        - option "Lyon 2e Arrondissement"
+        - option "Lyon 3e Arrondissement"
+        - option "Lyon 4e Arrondissement"
+        - option "Lyon 5e Arrondissement"
+        - option "Lyon 6e Arrondissement"
+        - option "Lyon 7e Arrondissement"
+        - option "Lyon 8e Arrondissement"
+        - option "Lyon 9e Arrondissement"
+        - option "Neuville-sur-Saône"
+        - option "Oullins"
+        - option "Pierre-Bénite"
+        - option "Rillieux-la-Pape"
+        - option "Saint-Cyr-au-Mont-d'Or"
+        - option "Saint-Didier-au-Mont-d'Or"
+        - option "Saint-Fons"
+        - option "Saint-Genis-Laval"
+        - option "Saint-Germain-au-Mont-d'Or"
+        - option "Saint-Priest"
+        - option "Sainte-Foy-lès-Lyon"
+        - option "Tassin-la-Demi-Lune"
+        - option "Vaulx-en-Velin"
+        - option "Villeurbanne"
+        - option "Vénissieux"
+        - option "Écully"
+    - generic [ref=e6]:
+      - text: "POI Type:"
+      - combobox "POI Type:" [ref=e7]:
+        - option "ACTIVITE" [selected]
+        - option "COMMERCE_ET_SERVICE"
+        - option "DEGUSTATION"
+        - option "EQUIPEMENT"
+        - option "FETE_ET_MANIFESTATION"
+        - option "HEBERGEMENT_COLLECTIF"
+        - option "HEBERGEMENT_LOCATIF"
+        - option "HOTELLERIE"
+        - option "HOTELLERIE_PLEIN_AIR"
+        - option "PATRIMOINE_CULTUREL"
+        - option "RESTAURATION"
+    - generic [ref=e8]:
+      - text: "Distance range (meters):"
+      - slider "Distance range (meters):" [ref=e9]: "500"
+    - text: 500 m
+    - button "Search" [ref=e10]
+  - paragraph [ref=e11]:
+    - link "Map visualization of POIs and Vélo'v stations" [ref=e12] [cursor=pointer]:
+      - /url: map.html

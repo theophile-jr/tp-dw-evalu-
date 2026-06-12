@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lyon Vélo'v and Tourist POI Explorer</title>
+</head>
+<body>
+  <h1>Lyon Vélo'v and Tourist POI Explorer</h1>
+  <p>
+    <label>Commune: <select id="communeSelect"></select></label>
+    <label>POI Type: <select id="typeSelect"></select></label>
+    <label>Distance range (meters):
+      <input type="range" id="rangeSlider" min="0" max="1000" value="500">
+    </label>
+    <span id="rangeValue">500 m</span>
+    <button id="searchButton">Search</button>
+  </p>
+  <p><a href="map.html">Map visualization of POIs and Vélo'v stations</a></p>
+  <div id="results"></div>
+
+  <script>
+    const communeSelect = document.getElementById("communeSelect");
+    const typeSelect = document.getElementById("typeSelect");
+    const rangeSlider = document.getElementById("rangeSlider");
+    const rangeValue = document.getElementById("rangeValue");
+    const searchButton = document.getElementById("searchButton");
+    const results = document.getElementById("results");
+
+    async function fillSelect(select, url) {
+      const response = await fetch(url);
+      const values = await response.json();
+      for (const value of values) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }
+    }
+
+    fillSelect(communeSelect, "/communes");
+    fillSelect(typeSelect, "/poitypes");
+
+    rangeSlider.addEventListener("input", () => {
+      rangeValue.textContent = rangeSlider.value + " m";
+    });
+
+    function buildPoiTable(pois) {
+      const table = document.createElement("table");
+      table.border = "1";
+      const header = table.insertRow();
+      header.innerHTML = "<th>POI Name</th><th>Theme</th>";
+      for (const poi of pois) {
+        const row = table.insertRow();
+        row.insertCell().textContent = poi.name;
+        row.insertCell().textContent = (poi.themes || []).join(", ");
+      }
+      return table;
+    }
+
+    searchButton.addEventListener("click", async () => {
+      const params = new URLSearchParams({
+        commune: communeSelect.value,
+        type: typeSelect.value,
+        range: rangeSlider.value
+      });
+      const response = await fetch("/search?" + params);
+      const stations = await response.json();
+
+      results.innerHTML = "";
+      if (stations.length === 0) {
+        results.textContent = "No velov station with a matching POI found.";
+        return;
+      }
+      const table = document.createElement("table");
+      table.border = "1";
+      const header = table.insertRow();
+      header.innerHTML = "<th>Station Name</th><th>Station Address</th><th>Nearby POIs</th>";
+      for (const station of stations) {
+        const row = table.insertRow();
+        row.insertCell().textContent = station.name;
+        row.insertCell().textContent = station.address;
+        row.insertCell().appendChild(buildPoiTable(station.nearbyPOI));
+      }
+      results.appendChild(table);
+    });
+  </script>
+</body>
+</html>

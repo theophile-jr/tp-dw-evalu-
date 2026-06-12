@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,
+      initial-scale=1.0">
+    <title>DW Lab: Dynamic Webpage with MongoDB and Javascript</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  </head>
+  <body>
+    <main class="container">
+      <h1>3IFA Graded Lab statement </h1>
+      <h3>Instructions</h3>
+      <p> <b><span style="color: red;">Read the statement carefully!</span></b>
+      </p>
+      <p> The purpose of this lab is to evaluate the notions seen during the
+        lectures, exercises and the lab sessions of the Data for the Web module.
+        For this purpose you will use <code>Firefox</code> as a browser, <code>MongoDB</code>
+        as the database management system, <code>NodeJS</code> and <code>Express</code>
+        as backend technology and framework. </p>
+      <p> Use a code editor (not a text processor like MS Word, LibreOffice,
+        Google Docs) to edit your code. Some examples : VSCode, NotePad++,
+        NetBeans, Eclipse, vi, ...<br>
+      </p>
+      <p>This exercise lasts 2 hours.</p>
+      <p> For the report, you will create a file named NAME1_NAME2_TPDW.zip
+        (replace NAME1 and NAME2 with your names ) in which you will put: </p>
+      <ol>
+        <li> A "main" text, markdown or html document named "CR_TP.txt" (or
+          "CR_TP.md" or "CR_TP.html") containing your commented answers (Number
+          the answers and copy their statements). <b><span style="color: #f60000;">Start
+              the report text/html file with your names and student numbers</span></b>&nbsp;
+          </li>
+        <li>A directory called webApp with the necessary files for your web
+          application as explained below. </li>
+      </ol>
+      <p> You will have to upload your report before 18h00 today on Moodle!</p>
+      <p>The respect of the instructions is&nbsp; worth <b><span style="color: #fc0000;">3
+            points. </span></b></p>
+      <p> We suppose that you have a MongoDB server running, a MongoDB client
+        and the <code>mongoimport</code> tool installed on your computer. If
+        not, please refer to the MongoDB exercise statement to install them.</p>
+      <p>Here is the <a href="onlylyon-tourisme-et-congres_apd_apidae.apdlieutourisme_latest.json">onlylyon-tourisme-et-congres_apd_apidae.apdlieutourisme_latest.json</a>
+        file with the data you will work on. Download (mouse right button : save
+        link target as) and import it in your <code>MongoDB</code> server to
+        the <code>touristPOI_c</code> collection in the <code>20263IFMongoLab</code>
+        database.</p>
+      <p>Make sure also that you have the <code>velov2026</code> collection
+        from the training lab as well in the same database.&nbsp; </p>
+      <p>Explore the data!</p>
+      <p><br>
+      </p>
+      <h4>Questions</h4>
+      <ul>
+        <li>1.1 Simplify the<code>touristPOI_c</code> collection, getting the
+          documents from inside the "features" array to the root of a new
+          collection called <code>touristPOI</code>.&nbsp; Provide the MongoDB
+          query and explain your approach.</li>
+      </ul>
+      <p> From now on, you will work with the <code>touristPOI</code>
+        collection. </p>
+      <br>
+      <ul>
+        <li>1.2 Provide a mongodb query that retrieves the unique types
+          (distinct types) of points of interest in the <code>touristPOI</code>collection.&nbsp;
+          Provide the results as well.<br>
+        </li>
+        <li> 1.3 What are the possible themes for each type of point of interest
+          in the <code>touristPOI</code>collection? List the distinct themes
+          for each type, and sort the results by the descending order of the
+          count of themes per type. Explain your approach, provide the query,
+          and the first 5 results. </li>
+        <li>2 Provide at least 3 MongoDB queries that combine the <code>touristPOI</code>collection
+          with the velov_geo collection using the <code>$lookup</code>
+          operator: <br>
+          <ol>
+            <li>2.1 first query that involves address comparison
+              (properties.address, properties.nom, … check the fields) </li>
+            <li>2.2 second query that implies geographic coordinate comparison.
+              Use geographic operators. Create indexes if necessary.</li>
+            <li>2.3 for the additional query use your imagination&nbsp;&nbsp; </li>
+          </ol>
+          Describe your method. Provide: query, results and explanation.</li>
+      </ul>
+      <p>For the following questions: provide the list of libraries used and the
+        files you created for the web application (typically: server.js,
+        data.js, index.html, ...<span style="color: red;">Don't include the </span><span
+          style="color: red;"><span style="color: red;"><code>node_modules</code></span>
+          directory!</span>). We will create a nodeJS webapp, install the
+        libraries and run your server. Provide a short setup guide. We will also
+        have a MongoDB server running with the <code>touristPOI</code> and the
+        <code>velov2026</code>collections in the <code>20263IFMongoLab</code>
+        database.</p>
+      <ul>
+        <li> 3.1 Create a web application using NodeJS and Express that connects
+          to MongoDB and retrieves the unique communes of velov stations and
+          integrates them in a dropdown list on an html page.</li>
+        <li> 3.2 Modify the application so that the web page contains two drop
+          down lists initialized with the unique communes and unique POI types
+          and contains a search button that calls a NodeJS/Expess route that
+          takes as parameters the commune of velov stations, the type of a POI
+          and returns the velov station names and address of the given commune
+          and the POI-s with the given type within a range of 500m from each
+          velov station. Return only velov stations with at least one
+          corresponding POI. You shall render in a table the names and addresses
+          of velov_stations, and the corresponding POI names and themes. The
+          table contains one raw per velov station and an embedded table for the
+          corresponding POI-s in a cell. <br>
+          Divide the problem in substeps and create the solution step by step. <br>
+          An illustration of the result is shown in the following picture:<img src="Subject2VelocAndPOI.PNG"
+            alt="page fragment" title="page fragment"></li>
+        <li> 3.3 Modify the application : add a slider next to the dropdown
+          lists in the html page with values from 0 to 1000 to select the
+          distance range in meters from the velov stations and modify the route
+          and html page to take this distance range in account when searching
+          the nearbyPOI-s, instead of a constant 500m.</li>
+        <li>3.4 Propose an interesting visualization of the POI dataset
+          eventually combined with the velov stations. Explain your idea and
+          provide the description of your solution</li>
+      </ul>
+    </main>
+  </body>
+</html>
